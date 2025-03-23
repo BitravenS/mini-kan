@@ -42,6 +42,7 @@ const KanbanBoard = () => {
     },
   ]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [activeId, setActiveId] = useState<string | null>(null);
 
   // Configure the pointer sensor with activation constraints for drag-on-hold
