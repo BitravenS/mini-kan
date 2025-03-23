@@ -13,6 +13,19 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
+import { Button } from "./ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogClose,
+  DialogTitle,
+  DialogHeader,
+  DialogFooter,
+  DialogDescription,
+} from "./ui/dialog";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 
 const KanbanBoard = () => {
   const [columns, setColumns] = useState<Array<col>>([
@@ -45,7 +58,6 @@ const KanbanBoard = () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  // Configure the pointer sensor with activation constraints for drag-on-hold
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -93,7 +105,6 @@ const KanbanBoard = () => {
     );
   };
 
-  // Helper function to find which column contains a task
   const findColumnByTaskId = (Id: string) => {
     if (!Id) return null;
 
@@ -181,9 +192,18 @@ const KanbanBoard = () => {
       });
     }
   };
-
+  const [newColName, setNewColName] = useState("");
+  const [newColColor, setNewColColor] = useState("gray");
+  const handleAddColumn = () => {
+    setColumns((prevColumns) => [
+      ...prevColumns,
+      { title: newColName, color: newColColor, tasks: [] },
+    ]);
+    setNewColColor("");
+    setNewColName("");
+  };
   return (
-    <div className="flex gap-8 p-4 overflow-x-auto min-h-screen overflow-visible">
+    <div className="flex gap-8 p-4 min-h-screen">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -202,6 +222,52 @@ const KanbanBoard = () => {
             onEditTask={editTask}
           />
         ))}
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="mt-16 text-center text-3xl w-92 bg-neutral-600/10 p-8 border-neutral-200/10 border-1">
+              Add Column
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Column</DialogTitle>
+              <DialogDescription>
+                Fill in the details of the Column
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="name"
+                  value={newColName}
+                  onChange={(e) => setNewColName(e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="description" className="text-right">
+                  Color
+                </Label>
+                <Input
+                  id="color"
+                  value={newColColor}
+                  onChange={(e) => setNewColColor(e.target.value)}
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" onClick={handleAddColumn}>
+                  Save Column
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </DndContext>
     </div>
   );
