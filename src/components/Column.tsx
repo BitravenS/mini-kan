@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import TaskCard from "@/components/TaskCard";
 import { task } from "@/models";
@@ -11,14 +12,19 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import { useDroppable } from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
 const Column = ({
   title,
   color,
   tasks,
+
   onAddTask,
   onRemoveTask,
   onEditTask,
@@ -26,13 +32,16 @@ const Column = ({
   title: string;
   color: string;
   tasks: Array<task>;
+
   onAddTask: (columnTitle: string, newTask: task) => void;
   onRemoveTask: (columnTitle: string, taskId: number) => void;
   onEditTask: (columnTitle: string, taskId: number, newTask: task) => void;
 }) => {
   const [taskName, setTaskName] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
-
+  const { setNodeRef } = useDroppable({
+    id: title,
+  });
   const colorMap: Record<string, string> = {
     red: "text-red-200",
     blue: "text-blue-200",
@@ -62,23 +71,41 @@ const Column = ({
 
   return (
     <div>
-      <div className="wrapper w-92">
+      <div className="wrapper w-92 overflow-visible">
         <div className="title-container flex gap-6 justify-between text-2xl m-4">
           <div className={`text-center ${textColorClass}`}>{title}</div>
           <div className="text-right w-max">{tasks.length}</div>
         </div>
-        <div className={`p-0 m-0 overflow-y-auto hide-scrollbar`}>
-          {tasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              {...task}
-              onRemoveTask={() => handleRemoveTask(task.id)}
-                onEditTask={(newName: string, newDescription: string) =>
-                  handleEditTask(task.id, { ...task, name: newName, description: newDescription })
-                }
-            />
-          ))}
-        </div>
+        <SortableContext
+          strategy={verticalListSortingStrategy}
+          items={tasks.map((task) => `${title}-${task.id}`)}
+        >
+          <div
+            ref={setNodeRef}
+            className={`p-0 rounded-xl m-0 hide-scrollbar `}
+          >
+            {tasks.map((task) => {
+              const taskId = `${title}-${task.id}`;
+
+              return (
+                <TaskCard
+                  key={taskId}
+                  id={taskId}
+                  name={task.name}
+                  description={task.description}
+                  onRemoveTask={() => handleRemoveTask(task.id)}
+                  onEditTask={(newName: string, newDescription: string) =>
+                    handleEditTask(task.id, {
+                      ...task,
+                      name: newName,
+                      description: newDescription,
+                    })
+                  }
+                />
+              );
+            })}
+          </div>
+        </SortableContext>
       </div>
       <Dialog>
         <DialogTrigger asChild>

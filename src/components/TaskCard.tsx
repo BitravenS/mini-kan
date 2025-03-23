@@ -9,6 +9,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,11 +19,13 @@ import { cn } from "@/lib/utils";
 const TaskCard = ({
   name,
   description,
+  id,
   onRemoveTask,
   onEditTask,
 }: {
   name: string;
   description: string;
+  id: string;
   onRemoveTask: () => void;
   onEditTask: (newName: string, newDescription: string) => void;
 }) => {
@@ -29,7 +33,19 @@ const TaskCard = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(name);
   const [editedDescription, setEditedDescription] = useState(description);
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: id });
 
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
   const handleRemoveTask = () => {
     setIsRemoving(true);
     setTimeout(() => {
@@ -48,9 +64,14 @@ const TaskCard = ({
 
   return (
     <Card
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
       className={cn(
-        "group m-3 bg-neutral-600/10 shadow-lg transition-all duration-300",
-        isRemoving ? "opacity-0 scale-95" : "opacity-100 scale-100"
+        "cursor-grab touch-none active:cursor-grabbing group m-3 bg-neutral-600/10 shadow-lg transition-opacity transition-colors duration-300 ease-in-out",
+        isRemoving ? "opacity-0 scale-95" : "opacity-100 scale-100",
+        isDragging && "bg-neutral-600/20"
       )}
     >
       <CardHeader className="flex items-center justify-between">
